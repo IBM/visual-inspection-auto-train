@@ -1,0 +1,8 @@
+[Unit]
+Description=Monitor folder for additional images
+
+[Service]
+ExecStart=/usr/python <script_path>
+
+[Install]
+WantedBy=multi-user.target

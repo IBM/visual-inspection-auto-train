@@ -1,0 +1,24 @@
+{
+  "credentials": {
+    "endpoint": "<url>",
+    "port": "8000",
+    "username": "<username>",
+    "password": "<password>",
+    "time_token_received": "",
+    "token": "35bf6b87-be86-427d-b95d-b45651b3f41e"
+  },
+  "recursive": 1,
+  "threshold": 3,
+  "skip_duplicates": 1,
+  "time": 10,
+  "dataset": {
+    "name": "classifier",
+    "action": "append"
+  },
+  "folders": [
+    "/Users/kkbankol@us.ibm.com/projects/powerai-data-sync/images"
+  ],
+  "categories": {
+    "buildings": "buildings"
+  }
+}
