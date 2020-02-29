@@ -1,0 +1,9 @@
+[Unit]
+Description=Monitor folder for images to be uploaded to PowerAI Vision
+
+[Service]
+Environment=SCRIPT_PATH=/root/powerai-data-sync
+ExecStart=/usr/python3 $SCRIPT_PATH
+
+[Install]
+WantedBy=multi-user.target

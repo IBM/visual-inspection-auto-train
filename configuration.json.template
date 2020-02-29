@@ -4,22 +4,30 @@
     "port": "8000",
     "username": "<username>",
     "password": "<password>",
-    "time_token_received": "",
-    "token": "35bf6b87-be86-427d-b95d-b45651b3f41e"
   },
   "recursive": 1,
-  "upload_threshold": 3,
-  "training_threshold": 20,
+  "threshold": {
+    "training": 3,
+    "upload": 3
+  },
   "skip_duplicates": 1,
   "time": 10,
   "dataset": {
     "name": "classifier",
-    "action": "append"
+    "action": "append",
+  },
+  "model": {
+    "name": "classifier",
+    "action": "retrain",
+    "_comment": "action can be retrain, train, or nothing. default to 'train'. TODO, remember that training a new model will of course result in anew ID",
+    "strategy": {}
   },
   "folders": [
-    "/Users/kkbankol@us.ibm.com/projects/powerai-data-sync/images"
+    "<path to root image folder>",
+    "<path to root image folder>"
   ],
   "categories": {
-    "buildings": "buildings"
+    "buildings": "buildings",
+    "_comment": "this section is entirely optional, used to override category if user would prefer not to use subfolder"
   }
 }

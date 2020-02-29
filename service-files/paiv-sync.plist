@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>Label</key>
+        <string>net.madrat.utils.sync</string>
+        <key>Program</key>
+        <string>rsync</string>
+        <key>ProgramArguments</key>
+        <array>
+            <string>-ar</string>
+            <string>/path/to/folder/</string>
+            <string>/path/to/backup/</string>
+        </array>
+        <key>StartInterval</key>
+        <integer>7200</integer>
+    </dict>
+</plist>
