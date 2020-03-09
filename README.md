@@ -1,8 +1,8 @@
-# Upload PowerAI Vision datasets
+# Upload IBM Visual Insights datasets
 
-In this code pattern, we show how to simplify the model training process in PowerAI Vision.
+In this code pattern, we show how to simplify the model training process in IBM Visual Insights.
 
-Business users using PowerAI Vision's image classification process will need to manually upload and categorize images, which can become rather tedious when working with large datasets.
+Business users using IBM Visual Insights image classification process will need to manually upload and categorize images, which can become rather tedious when working with large datasets.
 
 Here we're providing a long-running script that'll enable the user to automate the training process for image classification models. They can upload and categorize images by simply adding images to a folder.
 
@@ -13,9 +13,9 @@ This script works by monitoring a folder containing one or more subfolders. Each
 
 #  Components
 
-* [PowerAI Vision](https://www.ibm.com/products/maximo). This is an image analysis platform that allows you to build and manage computer vision models, upload and annotate images, and deploy apis to analyze images and videos.
+* [IBM Visual Insights](https://www.ibm.com/products/maximo). This is an image analysis platform that allows you to build and manage computer vision models, upload and annotate images, and deploy apis to analyze images and videos.
 
-Sign up for a trial account of PowerAI vision [here](https://developer.ibm.com/linuxonpower/deep-learning-powerai/try-powerai/). This link includes options to provision a PowerAI Vision instance either locally on in the cloud.
+Sign up for a trial account of IBM Visual Insights [here](https://developer.ibm.com/linuxonpower/deep-learning-powerai/try-powerai/). This link includes options to provision a IBM Visual Insights instance either locally on in the cloud.
 
 # Flow
 
@@ -27,7 +27,7 @@ Sign up for a trial account of PowerAI vision [here](https://developer.ibm.com/l
 
 # Prerequisites
 
-* An account on IBM Marketplace that has access to PowerAI Vision. This service can be provisioned [here](https://developer.ibm.com/linuxonpower/deep-learning-powerai/vision/access-registration-form/)
+* An account on IBM Marketplace that has access to IBM Visual Insights. This service can be provisioned [here](https://developer.ibm.com/linuxonpower/deep-learning-powerai/vision/access-registration-form/)
 
 * Python 3
 
@@ -66,7 +66,7 @@ Copy configuration file from template.
 cp configuration.json.template configuration.json
 ```
 
-Open configuration file and fill in PowerAI Vision credentials in the "credentials" object.
+Open configuration file and fill in IBM Visual Insights credentials in the "credentials" object.
 
 ```
 "credentials": {
@@ -94,6 +94,8 @@ Specify the full path to the folder(s) that will be monitored by the script
 ]
 ```
 
+The rest of the options are optional and can stay as is.
+
 ## 4. Start and test script
 
 Start the script with the following command
@@ -102,7 +104,7 @@ Start the script with the following command
 python3 image-sync.py
 ```
 
-If the script is able to successfully authenticate,
+If the script is able to successfully authenticate, we'll see the following output in the console logs
 
 <img src="https://i.imgur.com/WNHQI8x.png" />
 
