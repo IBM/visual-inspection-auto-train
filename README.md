@@ -2,7 +2,7 @@
 
 In this code pattern, we show how to simplify the model training process in IBM Visual Insights.
 
-Business users using IBM Visual Insights image classification process will need to manually upload and categorize images, which can become rather tedious when working with large datasets.
+Currently, business users using the IBM Visual Insights image classification process will need to manually upload and categorize images. These manual steps can become rather tedious when working with large datasets.
 
 Here we're providing a long-running script that'll enable the user to automate the training process for image classification models. They can upload and categorize images by simply adding images to a folder.
 
@@ -50,6 +50,8 @@ git clone https://github.com/ibm/powerai-data-sync
 
 ## 2. Create image folder and subfolders
 
+In this step, we'll create a folder and category subfolders.
+
 ```
 mkdir images
 
@@ -66,18 +68,37 @@ Copy configuration file from template.
 cp configuration.json.template configuration.json
 ```
 
-Open configuration file and fill in IBM Visual Insights credentials in the "credentials" object.
+Now we'll need to fill in data in a few required sections.
+
+Open the `configuration.json` file and fill in IBM Visual Insights credentials in the "credentials" object.
+
+#### Credentials
 
 ```
 "credentials": {
-  "endpoint": "<url>",
-  "username": "<username>",
-  "password": "<password>",
+  "endpoint": "https://<visual_insights_url>",  
+  "username": "<visual_insights_username>",
+  "password": "<visual_insights_password>",
 }
 ```
 
+#### Dataset
 
-Next we'll configure the classification model to be trained once enough files have been uploaded. Give the model a name, and specify an action to take. Valid actions can be to "train" a new model, "retrain" an existing model, or "nothing" if you'd rather not train a model at all. Also, the "strategy" parameter can be provided to further customize the training process, such as how many iterations, type of neural network to train, and so on. The custom training parameters can be found in the api documentation [here](https://public.dhe.ibm.com/systems/power/docs/powerai/powerai-vision-api.html#dltasks_post)
+Next we can define our dataset. We'll simply provide a name here.
+
+```
+"dataset": {
+  "name": "classifier"
+}
+```
+
+#### Model
+
+Next we'll configure the classification model which will be trained once enough files have been uploaded. Give the model a name, and specify an action to take. Valid actions can be to "train" a new model, "retrain" an existing model, or "nothing" if you'd rather not train a model at all.
+
+The "train" option will create a new model with the provided name and an appended timestamp. If a previous model with the same name/dataset has been trained, we will use the newest version of that model as a starting point. This is the recommended option as it will result in the fastest training times.
+
+The "retrain" option will create a new model with the provided name and an appended timestamp. This will begin training from the beginning, so this option will result in longer training times.
 
 ```
 "model": {
@@ -87,24 +108,101 @@ Next we'll configure the classification model to be trained once enough files ha
 },
 ```
 
-Specify the full path to the folder(s) that will be monitored by the script
+#### Threshold
+
+Then, we'll define threshold parameters. The threshold should be an integer specifying how many images can be added to a folder before some action is taken. In this case, we have an "upload" threshold which will cause the process to begin uploading images to a dataset once that threshold has been passed. And we also have a "training" threshold will trigger a new model training process.
+
+```
+"threshold": {
+  "upload": 3,
+  "training": 10
+},
+```
+
+#### Optional Model Parameters
+We can further define the type of model that will be trained with optional parameters.
+
+For example, we can add the `nn_arch` parameter to specify what kind of neural network will be trained. Valid options are "tiny_yolo_v2" (tiny YOLO v2), "frcnn" (FRCNN), and "frcnn_mrcnn" (Segmentation Training). If this parameter is not provided, the system will default to building a "FRCNN" model.
+
+We can also specify a pretrained_model to be used as a base model. This parameter is automatically added if using the "retrain" action, but you can override the model id here if there's a particular model you'd like to use as a base.
+
+The `strategy` object can be provided to further customize the training process, and define parameters as how many training iterations, a learning rate, etc.
+
+For example, the following `model` object will generate a "Tiny YOLO V2" based model. This will use the specified `pretrained_model` as a base. And the `strategy` section defines the maximum iterations, number of test iterations, test interval, and a learning rate.
+```
+"model": {
+  "name": "<name_of_model>",
+  "action": "train",
+  "pretrained_model": "<pretrained_model_id>
+  "nn_arch": "tiny_yolo_v2"
+  "strategy": {
+      "max_iter": 1500,
+      "test_iter": 100,
+      "test_interval": 20,
+      "learning_rate": 0.001
+  }
+},
+```
+
+A full list of the custom training parameters can be found in the api documentation [here](https://public.dhe.ibm.com/systems/power/docs/powerai/powerai-vision-api.html#dltasks_post)
+
+#### Folder(s)
+Finally, we'll need specify the full path to the folder(s) that will be monitored by the script. All subfolders within the provided folder will also be monitored.
+
 ```
 "folders": [
   "<path to root image folder>",
 ]
 ```
 
-The rest of the options are optional and can stay as is.
+
+
+A completed configuration file should look like so
+```
+{
+  "credentials": {
+    "endpoint": "<url>",
+    "port": "8000",
+    "username": "<username>",
+    "password": "<password>",
+  },
+  "threshold": {
+    "training": 3,
+    "upload": 10
+  },
+  "skip_duplicates": 1,
+  "time": 10,
+  "dataset": {
+    "name": "classifier",
+  },
+  "model": {
+    "name": "classifier",
+    "action": "retrain",
+    "strategy": {}
+  },
+  "folders": [
+    "<path to root image folder>",
+    "<path to root image folder>"
+  ],
+  "categories": {
+    "buildings": "buildings",
+    "_comment": "this section is entirely optional, used to override category if user would prefer not to use subfolder"
+  }
+}
+
+```
+
+
 
 ## 4. Start and test script
 
-Start the script with the following command
+After setting up the configuration file, we can start the script with the following command.
 
 ```
 python3 image-sync.py
 ```
 
-If the script is able to successfully authenticate, we'll see the following output in the console logs
+This script will run indefinitely until the process is stopped. If the script is able to successfully authenticate, we'll see the following output in the console logs
 
 <img src="https://i.imgur.com/WNHQI8x.png" />
 
@@ -112,6 +210,8 @@ If the script is able to successfully authenticate, we'll see the following outp
 Next, copy a few images into the various category folders. The logs will show which files were added, and how  many more images are needed to meet the threshold.
 
 <img src="https://i.imgur.com/2v2bTHb.png" />
+
+In the script output, we can see the total amount of images that have been added to the folder, and we can also compare that to the upload/training thresholds. The script output is updated every time files are added to the folder. In the bottom of the script output, we can see that our upload threshold has been surpassed, and that the images are to be uploaded to the dataset
 
 <!-- ## 5. Register script as a service
 

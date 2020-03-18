@@ -5,21 +5,18 @@
     "username": "<username>",
     "password": "<password>",
   },
-  "recursive": 1,
   "threshold": {
     "training": 3,
-    "upload": 3
+    "upload": 10
   },
   "skip_duplicates": 1,
   "time": 10,
   "dataset": {
     "name": "classifier",
-    "action": "append",
   },
   "model": {
     "name": "classifier",
     "action": "retrain",
-    "_comment": "action can be retrain, train, or nothing. default to 'train'. TODO, remember that training a new model will of course result in anew ID",
     "strategy": {}
   },
   "folders": [

@@ -108,6 +108,20 @@ def get_datasets():
         print(f"error getting datasets")
         print(r.status_code)
 
+
+def get_models():
+    # global datasets
+    # headers = {
+    #     'X-Auth-Token': token
+    # }
+    r = requests.get(f"{url}api/trained-models", headers=headers, verify=False)
+    if r.status_code == 200:
+        models = r.json()
+        return models
+    else:
+        print(f"error getting models")
+        print(r.status_code)
+
 def get_dataset_categories(dataset_id):
     # headers = {
     #     'X-Auth-Token': token
@@ -190,13 +204,14 @@ def upload_files(): # dataset_name):
         # print(r)
         if r.status_code == 200:
             print(f"{len(files) - 2} {category} files posted to dataset {dataset_id}")
-            global file_upload_count
-            file_upload_count = 0
         else:
             print(f"error uploading file(s), HTTP {r.status_code}")
+    print("resetting file_upload_count")
+    global file_upload_count
+    file_upload_count = 0
     files_to_upload = {}
-        # TODO zip if more than 5 files
-
+    # upload_in_progress = False
+    # TODO zip if more than 5 files
 
 def train_model(dataset_id, action): #action=None, strategy={}):
     print("training model")
@@ -204,28 +219,39 @@ def train_model(dataset_id, action): #action=None, strategy={}):
     # ds_id = ds_ids[name]['id']
     # dataset_id
     # name = config['model']['name']
-    if action == "retrain":
-        name = config['model']['name']
-    elif action == "train":
-        # TODO may cause clutter creating a new model every x files. Perhaps we can only keep most recent 5 models or so, remove oldest
-        name = config['model']['name'] + t
-    elif action == "nothing":
-        return
+    # if config['model']['action']:
     body = {
         "action": "create", # hardcoding to classifier for now. TODO, can add object detection if object coords are included in a json file
         "dataset_id": dataset_id,
         # pretrained_model: "", # TODO use in case of retrain?
-        # strategy: strategy,
-        "name": name
+        # "name": name
     }
+    if config['strategy']:
+        strategy = config['strategy']
+    else:
+        strategy = {}
+
+    if action == "retrain":
+        name = config['model']['name'] + t
+        body['name'] = name
+        body['pretrained_model'] = last_model_id
+        # strategy = {}
+    elif action == "train":
+        # TODO may cause clutter creating a new model every x files. Perhaps we can only keep most recent 5 models or so, remove oldest
+        name = config['model']['name'] + t
+        body['name'] = name
+    elif action == "nothing":
+        return
     r = requests.post(f"{url}api/dltasks", headers=headers, json=body, verify=False)
     if r.status_code == 200:
         print(f"training model for dataset {dataset_name}")
-        global file_train_count
-        file_train_count = 0
     else:
         print(f"error training model, {r.status_code}")
         print(f"{r.text}")
+    print("resetting file_train_count")
+    global file_train_count
+    file_train_count = 0
+
 
 
 # On start
@@ -284,12 +310,8 @@ ds_ids[dataset_name]['files'] = get_dataset_files(ds_id)
 # global file_count
 # file_count = 0
 
-file_upload_count = 0
-file_train_count = 0
 
-global upload_timer
-global train_timer
-
+# TODO, make timer global. if it's defined and counting down, restart
 def start_upload_timer():
     # We're using an timer in case the user adds more files to any of the subfolders after the threshold is met
     # This will give the user a buffer of x seconds to add more files. Timer is reset every time the
@@ -380,6 +402,8 @@ We'll wait until all other upload threads are finished before starting the train
 '''
 
 total_file_count = 0
+file_upload_count = 0
+file_train_count = 0
 class Event(LoggingEventHandler):
     # file_upload_count = 0
     # file_train_count = 0
@@ -405,9 +429,10 @@ class Event(LoggingEventHandler):
         print(f'upload: {file_upload_count} / {upload_threshold}')
         print(f'training: {file_train_count} / {training_threshold}')
         print(f'total_file_count: {total_file_count}')
-        if file_upload_count >= upload_threshold:
+        if file_upload_count == upload_threshold:
             print(yellow_text)
             print(white_text)
+            # upload_in_progress = True
             start_upload_timer()
             # if 'upload_timer' in [t.name for t in threading.enumerate()]:
                 # reset_upload_timer()
@@ -420,9 +445,9 @@ class Event(LoggingEventHandler):
             # upload_files(files_to_upload, config['dataset']['name'])
             # print("resetting file_upload_count")
 
-        if file_train_count >= training_threshold:
+        if file_train_count == training_threshold:
             print(green_text)
-            print(f"{file_train_count} files added to folders, training model")
+            print(f"{file_train_count} files added to folders, starting model training timer")
             print(white_text)
             # upload_files(files_to_upload)
             # TODO, think through, should wait x seconds after training threshold is passed in case user is still adding additional files
@@ -436,7 +461,7 @@ class Event(LoggingEventHandler):
             #     start_training_timer()
             #     # getting multiple
 
-            print(f"training model in {training_delay} seconds")
+
             # file_train_count = 0
 
             '''
@@ -449,9 +474,8 @@ class Event(LoggingEventHandler):
             # train_model( ds_ids[dataset_name]['_id'], config['model']['action'])
             # print("resetting file_train_count")
             print(white_text)
-
             # time.sleep(3)
-        print("finished handling added file")
+        print(f"finished handling file {event.src_path}")
 
         # files.append(event.src_path)
 
