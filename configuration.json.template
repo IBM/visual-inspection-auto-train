@@ -3,7 +3,7 @@
     "endpoint": "<url>",
     "port": "8000",
     "username": "<username>",
-    "password": "<password>",
+    "password": "<password>"
   },
   "threshold": {
     "training": 3,
@@ -12,7 +12,7 @@
   "skip_duplicates": 1,
   "time": 10,
   "dataset": {
-    "name": "classifier",
+    "name": "classifier"
   },
   "model": {
     "name": "classifier",
@@ -25,6 +25,6 @@
   ],
   "categories": {
     "buildings": "buildings",
-    "_comment": "this section is entirely optional, used to override category if user would prefer not to use subfolder"
+    "_comment": "this section is entirely optional, used to override category if user would prefer not to use subfolder name"
   }
 }

@@ -94,7 +94,7 @@ Next we can define our dataset. We'll simply provide a name here.
 
 #### Model
 
-Next we'll configure the classification model which will be trained once enough files have been uploaded. Give the model a name, and specify an action to take. Valid actions can be to "train" a new model, "retrain" an existing model, or "nothing" if you'd rather not train a model at all.
+Next we'll configure the classification model which will be trained once enough files have been uploaded. Give the model a name, and specify an action to take. Valid actions can be to "train" a new model, "retrain" an existing model, or "none" if you'd rather not train a model at all.
 
 The "train" option will create a new model with the provided name and an appended timestamp. If a previous model with the same name/dataset has been trained, we will use the newest version of that model as a starting point. This is the recommended option as it will result in the fastest training times.
 
@@ -269,7 +269,7 @@ The script will monitor a folder that has one or more subfolders. Each subfolder
   "model": {
     "name": "classifier",
     "action": "retrain"
-    "_comment": "action can be retrain, train, or nothing. default to 'train'. TODO, remember that training a new model will of course result in anew ID",
+    "_comment": "action can be retrain, train, or none. default to 'train'. TODO, remember that training a new model will of course result in anew ID",
     "strategy": {}
   },
   "folders": [
