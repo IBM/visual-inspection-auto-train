@@ -10,6 +10,7 @@ from threading import Timer
 from threading import Thread
 import threading
 import zipfile
+import os
 
 from watchdog.observers import Observer
 from watchdog.events import LoggingEventHandler
@@ -30,8 +31,8 @@ upload_threshold = config['threshold']['upload']
 training_threshold = config['threshold']['train']
 dataset_name = config['dataset']['name']
 
-if 'action' in config['dataset'].keys():
-    action = config['dataset']['action'].lower()
+if 'action' in config['model'].keys():
+    action = config['model']['action'].lower()
 else:
     action = None
 
@@ -125,7 +126,6 @@ def get_dataset_files(dataset_id):
         print("error retreiving dataset files")
         return []
 
-
 def create_dataset_category(dataset_name, category_name):
     body = {
       "name": category_name
@@ -186,7 +186,7 @@ def train_model(dataset_id, action): #, strategy={}):
     global file_train_count
     t = date.fromtimestamp(time.time()).strftime("%m%d%Y-%H%M%S")
     body = {
-        "action": "create", # hardcoding to classifier for now. TODO, can add object detection if object coords are included in a json file
+        "action": action, #"create", # hardcoding to classifier for now. TODO, can add object detection if object coords are included in a json file
         "dataset_id": dataset_id,
     }
     if 'strategy' in config.keys():
@@ -260,6 +260,12 @@ ds_id = ds_ids[dataset_name]['_id']
 ds_ids[dataset_name]['categories'] = get_dataset_categories(ds_id)
 ds_ids[dataset_name]['files'] = get_dataset_files(ds_id)
 
+
+
+
+
+
+
 # ds_ids = get_dataset_info() # should refresh info every x hours
 
 # TODO, make timer global. if it's defined and counting down, restart
@@ -330,12 +336,47 @@ def reset_training_timer():
     train_timer.name = "train_timer"
     train_timer.start()
 
+def upload_existing_files():
+    # upload files that are in folder and do not exist in dataset
+    global files_to_upload
+    global file_upload_count
+    global file_train_count
+    file_names = [f['original_file_name'] for f in ds_ids[dataset_name]['files']]
+    for category in os.listdir(config['folders'][0]):
+        if category not in files_to_upload.keys():
+            files_to_upload[category] = []
+        print(f"{config['folders'][0]}/{category}")
+        for image in os.listdir( f"{config['folders'][0]}/{category}" ):
+            if image in file_names:
+                print(f"image {image} already exists in dataset, skipping")
+                continue
+            else:
+                if len(files_to_upload[category]) < 10:
+                    print(f"adding {image}")
+                    files_to_upload[category].append(f"{config['folders'][0]}/{category}/{image}")
+        file_upload_count += len(files_to_upload[category])
+        file_train_count += len(files_to_upload[category])
+        print(f"uploading {len(files_to_upload[category])} {category} images ")
+    print(f" uploading {file_upload_count} total images")
+
+    if file_upload_count > upload_threshold:
+        print(yellow_text)
+        print(white_text)
+        # upload_in_progress = True
+        start_upload_timer()
+    if file_train_count > training_threshold:
+        print(green_text)
+        print(f"{file_train_count} files added to folders, starting model training timer")
+        print(white_text)
+        training_delay = 10 # have a delay of 10 seconds before training
+        start_training_timer()
+
 '''
 Files are added to subfolder
 
 Determine if the number of files exceed the 'upload' threshold
 
-    If they do, we schedule a thread to upload the files
+If they do, we schedule a thread to upload the files
 
 If additional files are added during the countdown, we'll cancel and reschedule a new upload thread
 
@@ -350,6 +391,8 @@ We'll wait until all other upload threads are finished before starting the train
 total_file_count = 0
 file_upload_count = 0
 file_train_count = 0
+upload_existing_files()
+
 class Event(LoggingEventHandler):
     # file_upload_count = 0
     # file_train_count = 0
