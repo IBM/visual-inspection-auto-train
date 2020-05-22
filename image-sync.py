@@ -345,15 +345,14 @@ def upload_existing_files():
     for category in os.listdir(config['folders'][0]):
         if category not in files_to_upload.keys():
             files_to_upload[category] = []
-        print(f"{config['folders'][0]}/{category}")
         for image in os.listdir( f"{config['folders'][0]}/{category}" ):
             if image in file_names:
                 print(f"image {image} already exists in dataset, skipping")
                 continue
             else:
-                if len(files_to_upload[category]) < 10:
-                    print(f"adding {image}")
-                    files_to_upload[category].append(f"{config['folders'][0]}/{category}/{image}")
+                # if len(files_to_upload[category]) < 10:
+                #     print(f"adding {image}")
+                files_to_upload[category].append(f"{config['folders'][0]}/{category}/{image}")
         file_upload_count += len(files_to_upload[category])
         file_train_count += len(files_to_upload[category])
         print(f"uploading {len(files_to_upload[category])} {category} images ")
