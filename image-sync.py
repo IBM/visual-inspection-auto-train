@@ -21,8 +21,11 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 green_text = "\033[1;32;40m"
-white_text = "\033[1;37;40m"
+white_text = '\033[0m' #"\033[1;37;40m"
 yellow_text = "\033[1;33;40m"
+red_text = '\033[91m'
+blue_text = '\033[94m'
+
 
 # load config file
 f = open('./configuration.json')
@@ -156,10 +159,10 @@ def upload_files():
             print(f"category {category} does not exist in dataset {dataset_name}, creating")
             c = create_dataset_category(dataset_name, category)
             ds_ids[dataset_name]['categories'].update(c)
-        else:
-            print(f"category {category} already exists in dataset {dataset_name}")
+        # else:
+            # print(f"category {category} already exists in dataset {dataset_name}")
         num_files = len(files_to_upload[category])
-        if num_files > 100:
+        if num_files > 50:
             z = zipfile.ZipFile('images.zip', 'w')
             file_upload_count += num_files
             for file in files_to_upload[category]:
@@ -173,10 +176,10 @@ def upload_files():
         close_files = lambda f: f[1].close()
         map(close_files, files)
         if r.status_code == 200:
-            print(f"{len(files) - 2} {category} files posted to dataset {dataset_id}")
+            print(f"{green_text} {num_files} {category} files uploaded to dataset {dataset_id} {white_text}")
         else:
-            print(f"error uploading file(s), HTTP {r.status_code}")
-    print("resetting file_upload_count")
+            print(f"{red_text} error uploading file(s), HTTP {r.status_code} {white_text}")
+    # print("uploads complete resetting file_upload_count")
     file_upload_count = 0
     files_to_upload = {}
     upload_in_progress = False
@@ -186,7 +189,7 @@ def train_model(dataset_id, action): #, strategy={}):
     global file_train_count
     t = date.fromtimestamp(time.time()).strftime("%m%d%Y-%H%M%S")
     body = {
-        "action": action, #"create", # hardcoding to classifier for now. TODO, can add object detection if object coords are included in a json file
+        "action": action, # TODO, can add object detection if object coords are included in a json file
         "dataset_id": dataset_id,
     }
     if 'strategy' in config.keys():
@@ -207,30 +210,15 @@ def train_model(dataset_id, action): #, strategy={}):
     r = requests.post(f"{url}/api/dltasks", headers=headers, json=body, verify=False)
     if r.status_code == 200:
         last_model_id = r.json()['task_id']
-        print(f"training model: {last_model_id} for dataset: {dataset_name}")
+        print(blue_text)
+        print(f"Image uploads complete. Training model: {last_model_id} for dataset: {dataset_name}")
+        print(white_text)
     else:
+        print(red_text)
         print(f"error training model, {r.status_code}")
         print(f"{r.text}")
-    print("resetting file_train_count")
+        print(white_text)
     file_train_count = 0
-
-
-
-# On start
-
-# get PAIV token
-token = get_token(config)
-headers = {
-    'X-Auth-Token': token
-}
-
-# get dataset information (categories, files)
-ds_ids = get_datasets()
-dataset_name = config['dataset']['name']
-if dataset_name not in ds_ids.keys():
-    ds_ids[dataset_name] = create_dataset(dataset_name)
-
-last_model_id = None
 
 
 '''
@@ -256,9 +244,6 @@ files_to_upload = {
 files_to_upload.keys()
 '''
 
-ds_id = ds_ids[dataset_name]['_id']
-ds_ids[dataset_name]['categories'] = get_dataset_categories(ds_id)
-ds_ids[dataset_name]['files'] = get_dataset_files(ds_id)
 
 
 
@@ -293,11 +278,12 @@ def reset_upload_timer():
     upload_timer.start()
 
 def wait_for_uploads(train_timer):
-    for i in range(0,3):
+    for i in range(0,100):
         upload_thread = list(filter(lambda t: (t.name == 'upload_timer'), threading.enumerate()))
         if upload_thread and upload_thread[0].isAlive(): #threading.active_count() > 1:
-            print("waiting for uploads to complete")
-            time.sleep(5)
+            if ( (i % 5) == 0):
+                print(f"{yellow_text} waiting for uploads to complete {white_text}")
+            time.sleep(10)
         else:
             break
     train_timer.start()
@@ -338,35 +324,38 @@ def reset_training_timer():
 
 def upload_existing_files():
     # upload files that are in folder and do not exist in dataset
+    print("checking folders for images to upload")
     global files_to_upload
     global file_upload_count
     global file_train_count
+    num_skipped_files = 0
     file_names = [f['original_file_name'] for f in ds_ids[dataset_name]['files']]
     for category in os.listdir(config['folders'][0]):
         if category not in files_to_upload.keys():
             files_to_upload[category] = []
         for image in os.listdir( f"{config['folders'][0]}/{category}" ):
-            if image in file_names:
-                print(f"image {image} already exists in dataset, skipping")
+            image_type = image.split('.')
+            if (image_type) and (len(image_type) > 1) and (image_type[1] not in ['jpg', 'png', 'mp4']):
+                print(f"skipping unsupported media type {image_type[1]}")
+                continue
+            if (image in file_names):
+                # print(f"image {image} already exists in dataset, skipping")
+                num_skipped_files += 1
                 continue
             else:
                 # if len(files_to_upload[category]) < 10:
-                #     print(f"adding {image}")
                 files_to_upload[category].append(f"{config['folders'][0]}/{category}/{image}")
         file_upload_count += len(files_to_upload[category])
         file_train_count += len(files_to_upload[category])
-        print(f"uploading {len(files_to_upload[category])} {category} images ")
-    print(f" uploading {file_upload_count} total images")
-
+        # print(f"uploading {len(files_to_upload[category])} {category} images")
+    print(f"skipping {num_skipped_files} local images that already exist in dataset")
+    # print(f"uploading {file_upload_count} new images")
     if file_upload_count > upload_threshold:
-        print(yellow_text)
-        print(white_text)
+        print(f"{yellow_text} {file_train_count} new images detected in folders, starting upload timer {white_text}")
         # upload_in_progress = True
         start_upload_timer()
     if file_train_count > training_threshold:
-        print(green_text)
-        print(f"{file_train_count} files added to folders, starting model training timer")
-        print(white_text)
+        print(f"{blue_text} {file_train_count} new images detected in folders, starting model training timer {white_text}")
         training_delay = 10 # have a delay of 10 seconds before training
         start_training_timer()
 
@@ -387,10 +376,34 @@ We'll wait until all other upload threads are finished before starting the train
 
 '''
 
+
+# On start
+
+# get PAIV token
+token = get_token(config)
+headers = {
+    'X-Auth-Token': token
+}
+
+# get dataset information (categories, files)
+ds_ids = get_datasets()
+dataset_name = config['dataset']['name']
+if dataset_name not in ds_ids.keys():
+    ds_ids[dataset_name] = create_dataset(dataset_name)
+
+last_model_id = None
+
+ds_id = ds_ids[dataset_name]['_id']
+ds_ids[dataset_name]['categories'] = get_dataset_categories(ds_id)
+ds_ids[dataset_name]['files'] = get_dataset_files(ds_id)
+
+
 total_file_count = 0
 file_upload_count = 0
 file_train_count = 0
+
 upload_existing_files()
+
 
 class Event(LoggingEventHandler):
     # file_upload_count = 0
@@ -408,7 +421,7 @@ class Event(LoggingEventHandler):
             files_to_upload[category] = []
         image_type = filename.split('.')[-1]
         if image_type not in ['jpg', 'png', 'mp4']:
-            print(f"unsupported media type {image_type}")
+            print(f"skipping unsupported media type {image_type}")
             return
         files_to_upload[category].append(event.src_path)
         total_file_count += 1
@@ -418,8 +431,6 @@ class Event(LoggingEventHandler):
         print(f'training: {file_train_count} / {training_threshold}')
         print(f'total_file_count: {total_file_count}')
         if file_upload_count == upload_threshold:
-            print(yellow_text)
-            print(white_text)
             # upload_in_progress = True
             start_upload_timer()
 
@@ -429,7 +440,6 @@ class Event(LoggingEventHandler):
             print(white_text)
             training_delay = 10 # have a delay of 10 seconds before training
             start_training_timer()
-
             '''
             # wait until other upload threads are complete
             threading.active_count()
@@ -452,7 +462,7 @@ if __name__ == "__main__":
         path = sys.argv[1] if len(sys.argv) > 1 else '.'
         observer.schedule(event_handler, path, recursive=True)
     observer.start()
-    print(f"Observing files in {config['folders']}")
+    print(f"{yellow_text} Observing files in {config['folders']} {white_text}")
     try:
         while True:
             time.sleep(1)
