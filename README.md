@@ -1,8 +1,8 @@
-# Upload IBM Visual Insights datasets
+# Upload IBM Maximo Visual Inspection datasets
 
-In this code pattern, we show how to simplify the model training process in IBM Visual Insights.
+In this code pattern, we show how to simplify the model training process in IBM Maximo Visual Inspection.
 
-Currently, business users using the IBM Visual Insights image classification process will need to manually upload and categorize images. These manual steps can become rather tedious when working with large datasets.
+Currently, business users using the IBM Maximo Visual Inspection image classification process will need to manually upload and categorize images. These manual steps can become rather tedious when working with large datasets.
 
 Here we're providing a long-running script that'll enable the user to automate the training process for image classification models. They can upload and categorize images by simply adding images to a folder.
 
@@ -13,9 +13,9 @@ This script works by monitoring a folder containing one or more subfolders. Each
 
 #  Components
 
-* [IBM Visual Insights](https://www.ibm.com/products/maximo). This is an image analysis platform that allows you to build and manage computer vision models, upload and annotate images, and deploy apis to analyze images and videos.
+* [IBM Maximo Visual Inspection](https://www.ibm.com/products/maximo). This is an image analysis platform that allows you to build and manage computer vision models, upload and annotate images, and deploy apis to analyze images and videos.
 
-Sign up for a trial account of IBM Visual Insights [here](https://developer.ibm.com/linuxonpower/deep-learning-powerai/try-powerai/). This link includes options to provision a IBM Visual Insights instance either locally on in the cloud.
+Sign up for a trial account of IBM Maximo Visual Inspection [here](https://developer.ibm.com/linuxonpower/deep-learning-powerai/try-powerai/). This link includes options to provision a IBM Maximo Visual Inspection instance either locally on in the cloud.
 
 # Flow
 
@@ -27,7 +27,7 @@ Sign up for a trial account of IBM Visual Insights [here](https://developer.ibm.
 
 # Prerequisites
 
-* An account on IBM Marketplace that has access to IBM Visual Insights. This service can be provisioned [here](https://developer.ibm.com/linuxonpower/deep-learning-powerai/vision/access-registration-form/)
+* An account on IBM Marketplace that has access to IBM Maximo Visual Inspection. This service can be provisioned [here](https://developer.ibm.com/linuxonpower/deep-learning-powerai/vision/access-registration-form/)
 
 * Python 3
 
@@ -70,15 +70,15 @@ cp configuration.json.template configuration.json
 
 Now we'll need to fill in data in a few required sections.
 
-Open the `configuration.json` file and fill in IBM Visual Insights credentials in the "credentials" object.
+Open the `configuration.json` file and fill in IBM Maximo Visual Inspection credentials in the "credentials" object.
 
 #### Credentials
 
 ```
 "credentials": {
-  "endpoint": "https://<visual_insights_url>",  
-  "username": "<visual_insights_username>",
-  "password": "<visual_insights_password>",
+  "endpoint": "https://<maximo_visual_inspection_url>",  
+  "username": "<maximo_visual_inspection_username>",
+  "password": "<maximo_visual_inspection_password>",
 }
 ```
 
