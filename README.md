@@ -9,7 +9,7 @@ Here we're providing a long-running script that'll enable the user to automate t
 This script works by monitoring a folder containing one or more subfolders. Each subfolder contains images, and the subfolder name should match the category of the image sets.
 
 <!-- Architecture -->
-<img src="https://i.imgur.com/JDmKk7h.png">
+<img src="https://developer.ibm.com/developer/default/patterns/derive-insights-from-asset-on-a-transmission-tower/images/architecture.png">
 
 #  Components
 
