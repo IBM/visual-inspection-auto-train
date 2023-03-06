@@ -1,3 +1,7 @@
+# WARNING: This repository is no longer maintained
+
+> This repository will not be updated. The repository will be kept available in read-only mode.
+
 # Upload IBM Maximo Visual Inspection datasets
 
 In this code pattern, we show how to simplify the model training process in IBM Maximo Visual Inspection.
